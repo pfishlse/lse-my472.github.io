@@ -48,6 +48,9 @@ ip_df <- read.csv("ip.csv")
 # Cleaning column names
 colnames(ip_df) <- str_replace(colnames(ip_df), "X", "")
 head(ip_df)
+
+ip_df %>%
+  rename(country = ï..country)
 ```
 
 
@@ -55,6 +58,9 @@ head(ip_df)
 # Industrial production and unemployement data in format two
 ip_and_unemployment_df <- read.csv("ip_and_unemployment.csv")
 head(ip_and_unemployment_df)
+
+ip_and_unemployment_df %>%
+  rename(country = ï..country) #I added this in an attempt to get around the encoding error that confuses it later on
 ```
 
 ### Tibbles
@@ -229,7 +235,10 @@ Another frequent goal is to compute summary statistics. This can be done with th
 
 ```{r}
 ip_and_unemployment_wide %>%
-  filter(country == "uk") %>% 
+  rename(country = ï..country)
+
+ip_and_unemployment_wide %>%
+  filter(ï..country == "uk") %>% 
   select(ip) %>% 
   drop_na() %>% 
   summarise(uk_ip_mean = mean(ip), uk_ip_sd = sd(ip), uk_observations = n())

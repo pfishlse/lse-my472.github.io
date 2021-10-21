@@ -32,10 +32,10 @@ Now we're ready to scrape the website:
 
 ```{r}
 # Reading the HTML code
-bribe_html <- _________(url)
+bribe_html <- read_html(url)
 
 # Identify the CSS selector and add it to the css argument
-bribe_nodes <- html_nodes(bribe_html, css = "____________")
+bribe_nodes <- html_nodes(bribe_html, css = ".paid-amount")
 
 # Content of CSS selector
 bribe_nodes
@@ -45,7 +45,7 @@ We still need to do some cleaning before the data is usable:
 
 ```{r}
 # Extract the content of the CSS selector as text
-bribe_amount <- _________(bribe_nodes) %>%
+bribe_amount <- html_text(bribe_nodes) %>%
   stri_replace_first_fixed("Paid INR ", "") %>%
   stri_replace_first_regex("\\r.+", "") %>%
   stri_replace_all_fixed(",", "") %>%
@@ -59,7 +59,7 @@ Small note on `stri_replace()`: `first` means to look for the first occurrence, 
 Let's do another one: transactions during which the bribe occurred:
 
 ```{r}
-transaction <- html_nodes(bribe_html, "______________") %>% 
+transaction <- html_nodes(bribe_html, ".transaction a") %>% 
   html_text
 
 transaction
@@ -82,20 +82,20 @@ scrape_bribe <- function(url){
   # Can you combine all previoius sections into one function?
   
   # 1. Read the html
-  c_html <- _________(url)
+  c_html <- read_html(url)
   
   # 2. Take the html and get the bribe amount
   amount <- c_html %>% 
-    html_nodes("____________") %>%
+    html_nodes(".paid-amount") %>%
     # extract it as text
-    ___________ %>% 
+    html_text() %>% 
     stri_replace_first_fixed("Paid INR ", "") %>%
     stri_replace_all_regex("\\r.+", "") %>%
     stri_replace_all_regex(",", "") %>%
     as.numeric()
   
   # 3. Take the html and get the transaction text
-  transaction <- html_nodes(c_html, "______________") %>% 
+  transaction <- html_nodes(c_html, ".transaction a") %>% 
     html_text
   
   # 4. Take the html and get the department text
@@ -103,7 +103,7 @@ scrape_bribe <- function(url){
     html_text
   
   # 5. Combine amount, transaction, and department into one dataframe
-  df <- data.frame(________, _________, _________, stringsAsFactors = FALSE)
+  df <- data.frame(amount, transaction, dept, stringsAsFactors = FALSE)
   
   return(df)
 }
@@ -129,11 +129,11 @@ And now we just need to loop over pages, and use the function we created earlier
 ```{r}
 for (i in 2:length(pages)){
   # informative message about progress of loop
-  message(i, '/', length(pages))
+  message(i, '/', length(pages)) #message comes into the console - it's for us
   # prepare URL
-  url <- paste0(base_url, pages[i])
+  url <- paste0(base_url, pages[i]) #concatenates the url with the number of pages (if that isn't at the end you can add it to the middle/wherever the page number is)
   # scrape website
-  data_list[[i]] <- scrape_bribe(url)
+  data_list[[i]] <- scrape_bribe(url) #adding it to your list. better to do it as items in a list rather than one big table as if your internet cuts out it will save to where you have got to.
   # wait a couple of seconds between URL calls
   Sys.sleep(2)
 }
@@ -164,7 +164,7 @@ mean(data_all$amount)
 median(data_all$amount)
 
 # Can you create a histogram of the amounts paid?
-ggplot(data_all, aes(x = _________)) + 
+ggplot(data_all, aes(x = amount)) + 
   geom_histogram() + 
   scale_x_log10()
 
